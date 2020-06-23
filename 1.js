@@ -56,16 +56,19 @@ if (one) {
 
 function getSong(filename) {
   const fileContent = fs.readFileSync(filename, {encoding: 'utf8'})
+  const $ = cheerio.load(fileContent)
   let markdown = turndownService.turndown(fileContent)
 
   // markdown = markdown.replaceAll(/$>\w/, '');
+  let title = $('h1').text();
+  title = _.replace(title, /\s+/g, ' ')
+  title = title.trim()
 
-  let [title, mainContent] = markdown.split(/=.+/)
-  title = title.match(/\*\*(.+)\*\*/)[1]
+  let mainContent = markdown.split(/=.+/)[1]
 
   let tune = null
   let tuneReplacer = function (match, p1) {
-    tune = p1
+    tune = p1.trim()
     return ''
   }
   mainContent = mainContent.replace(/\*\*tune:\*\*\s+(.+)/i, tuneReplacer)
@@ -80,7 +83,6 @@ function getSong(filename) {
   mainContent = mainContent.trim()
   keywords = keywords.split(',').map(function(v) {return v.trim()})
   keywords = _.compact(keywords)
-  tune = tune.trim()
 
   return {
     title,
