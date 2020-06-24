@@ -1,8 +1,12 @@
+// sorry this is so complex. I'm practicing async JS
+
 const _ = require('lodash')
 const fs = require('fs')
 const fsPromises = fs.promises
 const axios = require('axios')
 const cheerio = require('cheerio')
+
+const parseSong = require('./lib/parseSong').parseSong
 
 const one = false
 const skipWeb = true
@@ -45,7 +49,7 @@ async function downloadIndex(letter) {
     await fsPromises.mkdir(folderPath)
   }
 
-  const indexFilename = folderPath + '/index.html';
+  const indexFilename = folderPath + '/index.html'
   const url = `http://www.harrier.net/songbook/${letter}/index.html`
 
   await downloadIfNotExist(indexFilename, url)
@@ -77,7 +81,8 @@ async function downloadSongs(letter) {
 
     songFilenames.push(songFilename)
     await downloadIfNotExist(songFilename, url)
-  });
+    console.log(parseSong(songFilename))
+  })
   await Promise.all(promises)
 
   return songFilenames
