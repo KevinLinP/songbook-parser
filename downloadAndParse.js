@@ -41,7 +41,7 @@ async function downloadIfNotExist(filename, url) {
 }
 
 async function downloadIndex(letter) {
-  const folderPath = `html/${letter}`
+  const folderPath = `output/${letter}`
 
   try {
     await fsPromises.access(folderPath)
@@ -58,7 +58,7 @@ async function downloadIndex(letter) {
 }
 
 function parseSongUris(letter) {
-  const indexFilename = `html/${letter}/index.html`
+  const indexFilename = `output/${letter}/index.html`
   let $ = cheerio.load(fs.readFileSync(indexFilename))
 
   const songUris = []
@@ -72,34 +72,37 @@ function parseSongUris(letter) {
 }
 
 async function downloadSongs(letter) {
-  const songFilenames = []
+  const songs = []
   const songUris = parseSongUris(letter)
 
   const promises = songUris.map(async (songUri) => {
-    const songFilename = `html/${letter}/${songUri}`
+    const songFilename = `output/${letter}/${songUri}`
     const url = `http://www.harrier.net/songbook/${letter}/${songUri}`
 
-    songFilenames.push(songFilename)
     await downloadIfNotExist(songFilename, url)
-    console.log(parseSong(songFilename))
+    const song = parseSong(songFilename)
+    if (song) {
+      song.url = url
+      songs.push(song)
+    }
   })
   await Promise.all(promises)
 
-  return songFilenames
+  return songs
 }
 
 async function run() {
-  let allSongFilenames = []
+  let allSongs = []
 
   const promises = letters().map(async (letter) => {
     await downloadIndex(letter)
-    const songFilenames = await downloadSongs(letter)
-
-    allSongFilenames += songFilenames
+    allSongs.push(await downloadSongs(letter))
   })
   await Promise.all(promises)
 
-  console.log(allSongFilenames)
+  allSongs = _.flatten(allSongs)
+
+  fs.writeFileSync('output/songs.json', JSON.stringify(allSongs));
 }
 
 run()
