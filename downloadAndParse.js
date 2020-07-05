@@ -102,6 +102,8 @@ async function run() {
 
   allSongs = _.flatten(allSongs)
 
+  console.log(allSongs)
+
   fs.writeFileSync('output/songs.json', JSON.stringify(allSongs));
 }
 
